@@ -12,6 +12,8 @@ enum GamePhase {
 
 
 export class Game extends Scene {
+    buttonSound: Phaser.Sound.BaseSound;
+
     camera: Phaser.Cameras.Scene2D.Camera;
     background: Phaser.GameObjects.Image;
     gridWidth: number;
@@ -20,7 +22,7 @@ export class Game extends Scene {
     grid: number[][] = [];
 
     rnd = new Phaser.Math.RandomDataGenerator();
-    level: number = 1;
+    level = 1;
     levelPhase = GamePhase.PreGame;
 
     titleLevel: Phaser.GameObjects.Text;
@@ -30,16 +32,22 @@ export class Game extends Scene {
     menuRetry: Phaser.GameObjects.Container;
     menuNextLevel: Phaser.GameObjects.Container;
 
+    timerStart: Phaser.Time.TimerEvent;
+    textStart: Phaser.GameObjects.Text;
+    countdownStart: number;
+
     constructor() {
         super('Game');
     }
 
     create() {
-        this.camera = this.cameras.main;
-        this.camera.setBackgroundColor(0x00ff00);
+        this.buttonSound = this.sound.add('button');
 
-        this.background = this.add.image(Global.SCREEN_CENTER_X, Global.SCREEN_CENTER_Y, 'background').setScale(1.7);
-        this.background.setAlpha(0.5);
+        this.camera = this.cameras.main;
+
+        this.background = this.add.image(Global.SCREEN_CENTER_X, Global.SCREEN_CENTER_Y, 'background')
+            .setScale(Global.SCREEN_WIDTH / 8, 1.7)
+            .setAlpha(0.5);
 
         // Set Grid size
         this.gridWidth = 6;
@@ -51,11 +59,12 @@ export class Game extends Scene {
         this.createMenus();
 
         if (this.input.keyboard) {
-            this.input.keyboard.addKey('ESC').on('down', () => {
-                this.scene.start('GameOver');
-            });
             this.input.keyboard.addKey('T').on('down', () => {
-                this.levelPhase = 1 + this.levelPhase % 5;
+                if (this.timerStart) {
+                    this.timerStart.destroy();
+                }
+                this.level++;
+                this.levelPhase = GamePhase.PreGame;
                 this.applyPhase();
             });
         }
@@ -63,67 +72,74 @@ export class Game extends Scene {
         this.applyPhase();
     }
 
+    back() {
+        if (this.timerStart) this.timerStart.destroy();
+        this.level = 1;
+        this.levelPhase = GamePhase.PreGame;
+        this.scene.start('MainMenu');
+    }
+
     update(_time: number, _delta: number): void {
     }
 
     createMenus() {
-        const menuStyle = {
-            fontFamily: Global.FONT_FAMILY,
-            fontSize: Global.FONT_SIZE, color: '#ffffff',
-            stroke: '#000000', strokeThickness: 8,
-            align: 'center'
-        }
+        const menuStyle = Global.MENU_STYLE;
         const menuY = 100 - Global.SCREEN_CENTER_Y;
         const buttonY = 420;
+        const buttonBackX = Global.SCREEN_CENTER_X - 200;
+        const buttonBackY = Global.SCREEN_CENTER_Y * 2 - 60;
 
         this.titleLevel = this.add.text(Global.SCREEN_CENTER_X, 20, `Level ${this.level}`, menuStyle)
             .setOrigin(0.5, 0);
 
+        this.add.nineslice(buttonBackX, buttonBackY, 'button', 0, 200, 100, 30, 30, 30, 30)
+            .setInteractive()
+            .on('pointerup', () => { this.buttonSound.play(); this.back() });
+        this.add.text(buttonBackX, buttonBackY, 'Back', menuStyle).setOrigin(0.5);
+
         this.menuPreGame = this.add.container(Global.SCREEN_CENTER_X, Global.SCREEN_CENTER_Y);
         this.menuPreGame.add(
-            this.add.text(0, menuY, 'Prepare to show all.', menuStyle)
+            this.add.text(0, menuY, 'Prepare to show all runes.', menuStyle)
                 .setOrigin(0.5, 0)
         );
         this.menuPreGame.add(
             this.add.nineslice(0, buttonY, 'button', 0, 600, 100, 30, 30, 30, 30)
                 .setInteractive()
-                .on('pointerup', () => this.onButtonPreGame())
+                .on('pointerup', () => { this.buttonSound.play(); this.onButtonPreGame() })
         );
         this.menuPreGame.add(
             this.add.text(0, buttonY,
-                'Show all (limited time)',
+                'Show all runes (limited time)',
                 menuStyle
             ).setOrigin(0.5)
         );
 
         this.menuShowAll = this.add.container(Global.SCREEN_CENTER_X, Global.SCREEN_CENTER_Y);
         this.menuShowAll.add(
-            this.add.text(0, menuY, 'Look at disciples positions\nbefore they hide.', menuStyle)
-                .setOrigin(0.5, 0));
+            this.add.text(0, menuY, 'Look at runes positions\nbefore they hide.', menuStyle)
+                .setOrigin(0.5, 0)
+        );
         this.menuShowAll.add(
             this.add.nineslice(0, buttonY, 'button', 0, 600, 100, 30, 30, 30, 30)
                 .setInteractive()
-                .on('pointerup', () => this.onButtonShowAll()));
-        this.menuShowAll.add(
-            this.add.text(0, buttonY,
-                'Start game.',
-                menuStyle
-            ).setOrigin(0.5)
+                .on('pointerup', () => { this.buttonSound.play(); this.onButtonShowAll() })
         );
+        this.textStart = this.add.text(0, buttonY, 'Start game.', menuStyle).setOrigin(0.5);
+        this.menuShowAll.add(this.textStart);
 
         this.menuMoveAndSummon = this.add.container(Global.SCREEN_CENTER_X, Global.SCREEN_CENTER_Y);
         this.menuMoveAndSummon.add(
-            this.add.text(0, menuY, 'Move rows and columns\nto overwhelm evil.', menuStyle)
+            this.add.text(0, menuY, 'Move rows and columns\nto overwhelm evils.', menuStyle)
                 .setOrigin(0.5, 0));
         this.menuMoveAndSummon.add(
-            this.add.text(0, 300, 'Summon a group of disciples', menuStyle)
+            this.add.text(0, 300, 'Summon a type of rune', menuStyle)
                 .setOrigin(0.5, 0));
         for (let i = 1; i <= 6; i++) {
             this.menuMoveAndSummon.add(
                 this.add.sprite(-82 * 4 + i * 82, 420, 'characters', i)
                     .setOrigin(0)
                     .setInteractive()
-                    .on('pointerup', () => this.onButtonSummon(i)));
+                    .on('pointerup', () => { this.buttonSound.play(); this.onButtonSummon(i) }));
         }
 
         this.menuRetry = this.add.container(Global.SCREEN_CENTER_X, Global.SCREEN_CENTER_Y);
@@ -133,7 +149,7 @@ export class Game extends Scene {
         this.menuRetry.add(
             this.add.nineslice(0, buttonY, 'button', 0, 600, 100, 30, 30, 30, 30)
                 .setInteractive()
-                .on('pointerup', () => this.onButtonRetry()));
+                .on('pointerup', () => { this.buttonSound.play(); this.onButtonRetry() }));
         this.menuRetry.add(
             this.add.text(0, buttonY, 'Retry this level.', menuStyle)
                 .setOrigin(0.5)
@@ -146,7 +162,7 @@ export class Game extends Scene {
         this.menuNextLevel.add(
             this.add.nineslice(0, buttonY, 'button', 0, 600, 100, 30, 30, 30, 30)
                 .setInteractive()
-                .on('pointerup', () => this.onButtonNextLevel()));
+                .on('pointerup', () => { this.buttonSound.play(); this.onButtonNextLevel() }));
         this.menuNextLevel.add(
             this.add.text(0, buttonY, 'Go to next level.', menuStyle)
                 .setOrigin(0.5)
@@ -154,24 +170,23 @@ export class Game extends Scene {
     }
 
     applyPhase() {
-        console.log(`ApplyPhase() level=${this.level} levelPhase=${GamePhase[this.levelPhase]}`);
+        // console.log(`ApplyPhase() level=${this.level} levelPhase=${GamePhase[this.levelPhase]}`);
+        this.titleLevel.setText(`Level ${this.level}`);
         switch (this.levelPhase) {
             case GamePhase.PreGame:
                 this.initLevel();
-                this.displayOnlyDemons();
+                this.displayGridFiltered([0]);              // Display only demons
                 break;
             case GamePhase.ShowAll:
                 this.gridSprites.update(this.grid);         // Display all
                 break;
             case GamePhase.MoveAndSummon:
-                this.displayOnlyDemons();
+                this.displayGridFiltered([0]);              // Display only demons
                 this.gridSprites.setDragActive(true);
                 break;
             case GamePhase.Retry:
-                this.gridSprites.update(this.grid);         // Display all
                 break;
             case GamePhase.NextLevel:
-                this.gridSprites.update(this.grid);         // Display all
                 break;
         }
 
@@ -182,22 +197,22 @@ export class Game extends Scene {
         this.menuNextLevel.setVisible(this.levelPhase == GamePhase.NextLevel);
     }
 
-    displayOnlyDemons() {
+    displayGridFiltered(filter: number[]) {
         const grid2: number[][] = [];
         for (let x = 0; x < this.gridWidth; x++) {
             grid2[x] = [];
             for (let y = 0; y < this.gridHeight; y++) {
-                grid2[x][y] = (this.grid[x][y] == 0) ? 0 : 7;
+                grid2[x][y] = (filter.includes(this.grid[x][y])) ? this.grid[x][y] : 7;
             }
         }
         this.gridSprites.update(grid2);
     }
 
     initLevel() {
-        console.log(`initLevel() level=${this.level}`);
         // Initialize the random seed with the level number
-        this.rnd.init([`${this.level}`]);
-        let nbDemons = Math.min(this.level, 6);
+        this.rnd.init([`ABC ${this.level}`]);
+        let nbDemons = Math.min(Math.floor((this.level + 4) / 5), 4);
+        // console.log(`initLevel() level=${this.level} nbDemons=${nbDemons}`);
 
         const totalSize = this.gridWidth * this.gridHeight;
         for (let x = 0; x < this.gridWidth; x++) {
@@ -205,9 +220,10 @@ export class Game extends Scene {
             for (let y = 0; y < this.gridHeight; y++) {
                 let isDemon = false;
                 if (nbDemons > 0) {
-                    const currentSize = this.gridWidth * y + x;
+                    const currentSize = x * this.gridHeight + y;
                     const remainingSize = totalSize - currentSize;
-                    if (this.rnd.between(0, remainingSize) < (nbDemons * totalSize / remainingSize)) {
+                    // if (this.rnd.between(0, remainingSize) < (nbDemons * totalSize / remainingSize)) {
+                    if (this.rnd.between(0, remainingSize) <= nbDemons) {
                         isDemon = true;
                         nbDemons--;
                     }
@@ -219,27 +235,59 @@ export class Game extends Scene {
     }
 
     onButtonPreGame() {
-        this.titleLevel.setText(`Level ${this.level}`);
         this.levelPhase = GamePhase.ShowAll;
         this.applyPhase();
+
+        this.countdownStart = this.coutdownByLevel(this.level);
+        this.timerStart = this.time.addEvent({
+            delay: 1000,
+            loop: true,
+            repeat: this.countdownStart,
+            callback: () => { this.onTimerStart(); },
+        });
+        this.onTimerStart();
+    }
+
+    coutdownByLevel(level: number) {
+        return Math.max(20, Math.floor(62 - level * 2));
     }
 
     onButtonShowAll() {
+        if (this.timerStart) {
+            this.timerStart.destroy();
+        }
         this.levelPhase = GamePhase.MoveAndSummon;
         this.applyPhase();
     }
 
-    onButtonSummon(iDisciple: number) {
+    onTimerStart() {
+        this.textStart.setText(`Start game in ${this.countdownStart}`);
+        this.countdownStart--;
+        if (this.countdownStart < 0) {
+            this.onButtonShowAll();
+        }
+    }
+
+    async Pause(ms: number): Promise<void> {
+        return new Promise(resolve => setTimeout(resolve, ms))
+    }
+
+    async onButtonSummon(iDisciple: number) {
         this.gridSprites.setDragActive(false);
 
-        console.log(`summonDisciples(${iDisciple})`);
+        // console.log(`summonDisciples(${iDisciple})`);
+
+        this.displayGridFiltered([0, iDisciple]);
+        await this.Pause(1000);
+
         // check horizontal
         for (let x = 0; x < this.gridWidth - 2; x++) {
             for (let y = 0; y < this.gridHeight; y++) {
                 if (this.grid[x][y] == iDisciple && this.grid[x + 1][y] == 0 && this.grid[x + 2][y] == iDisciple) {
-                    console.log(`summonDisciples() found horizontal match at x=${x} y=${y}`);
+                    // console.log(`summonDisciples() found horizontal match at x=${x} y=${y}`);
                     this.grid[x + 1][y] = iDisciple;
-                    this.gridSprites.update(this.grid);
+                    this.displayGridFiltered([0, iDisciple]);
+                    await this.Pause(1000);
                 }
             }
         }
@@ -247,12 +295,14 @@ export class Game extends Scene {
         for (let x = 0; x < this.gridWidth; x++) {
             for (let y = 0; y < this.gridHeight - 2; y++) {
                 if (this.grid[x][y] == iDisciple && this.grid[x][y + 1] == 0 && this.grid[x][y + 2] == iDisciple) {
-                    console.log(`summonDisciples() found vertical match at x=${x} y=${y}`);
+                    // console.log(`summonDisciples() found vertical match at x=${x} y=${y}`);
                     this.grid[x][y + 1] = iDisciple;
-                    this.gridSprites.update(this.grid);
+                    this.displayGridFiltered([0, iDisciple]);
+                    await this.Pause(1000);
                 }
             }
         }
+
         // Check victory condition
         let victory = true;
         for (let x = 0; x < this.gridWidth; x++) {
