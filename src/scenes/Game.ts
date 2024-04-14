@@ -13,6 +13,13 @@ enum GamePhase {
 
 export class Game extends Scene {
     buttonSound: Phaser.Sound.BaseSound;
+    countdownSound: Phaser.Sound.BaseSound;
+    gameLostSound: Phaser.Sound.BaseSound;
+    gamewonSound: Phaser.Sound.BaseSound;
+    killEvilSound: Phaser.Sound.BaseSound;
+    showAllSound: Phaser.Sound.BaseSound;
+    startGameSound: Phaser.Sound.BaseSound;
+    summonRunesSound: Phaser.Sound.BaseSound;
 
     camera: Phaser.Cameras.Scene2D.Camera;
     background: Phaser.GameObjects.Image;
@@ -42,6 +49,13 @@ export class Game extends Scene {
 
     create() {
         this.buttonSound = this.sound.add('button');
+        this.countdownSound = this.sound.add('countdown');
+        this.gameLostSound = this.sound.add('game_lost');
+        this.gamewonSound = this.sound.add('game_won');
+        this.killEvilSound = this.sound.add('kill_evil');
+        this.showAllSound = this.sound.add('show_all');
+        this.startGameSound = this.sound.add('start_game');
+        this.summonRunesSound = this.sound.add('summon_runes');
 
         this.camera = this.cameras.main;
 
@@ -105,7 +119,7 @@ export class Game extends Scene {
         this.menuPreGame.add(
             this.add.nineslice(0, buttonY, 'button', 0, 600, 100, 30, 30, 30, 30)
                 .setInteractive()
-                .on('pointerup', () => { this.buttonSound.play(); this.onButtonPreGame() })
+                .on('pointerup', () => { this.showAllSound.play(); this.onButtonPreGame() })
         );
         this.menuPreGame.add(
             this.add.text(0, buttonY,
@@ -122,7 +136,7 @@ export class Game extends Scene {
         this.menuShowAll.add(
             this.add.nineslice(0, buttonY, 'button', 0, 600, 100, 30, 30, 30, 30)
                 .setInteractive()
-                .on('pointerup', () => { this.buttonSound.play(); this.onButtonShowAll() })
+                .on('pointerup', () => { this.startGameSound.play(); this.onButtonShowAll() })
         );
         this.textStart = this.add.text(0, buttonY, 'Start game.', menuStyle).setOrigin(0.5);
         this.menuShowAll.add(this.textStart);
@@ -139,7 +153,7 @@ export class Game extends Scene {
                 this.add.sprite(-82 * 4 + i * 82, 420, 'characters', i)
                     .setOrigin(0)
                     .setInteractive()
-                    .on('pointerup', () => { this.buttonSound.play(); this.onButtonSummon(i) }));
+                    .on('pointerup', () => { this.summonRunesSound.play(); this.onButtonSummon(i) }));
         }
 
         this.menuRetry = this.add.container(Global.SCREEN_CENTER_X, Global.SCREEN_CENTER_Y);
@@ -185,8 +199,10 @@ export class Game extends Scene {
                 this.gridSprites.setDragActive(true);
                 break;
             case GamePhase.Retry:
+                this.gameLostSound.play();
                 break;
             case GamePhase.NextLevel:
+                this.gamewonSound.play();
                 break;
         }
 
@@ -261,6 +277,7 @@ export class Game extends Scene {
     }
 
     onTimerStart() {
+        this.countdownSound.play();
         this.textStart.setText(`Start game in ${this.countdownStart}`);
         this.countdownStart--;
         if (this.countdownStart < 0) {
@@ -285,6 +302,7 @@ export class Game extends Scene {
             for (let y = 0; y < this.gridHeight; y++) {
                 if (this.grid[x][y] == iDisciple && this.grid[x + 1][y] == 0 && this.grid[x + 2][y] == iDisciple) {
                     // console.log(`summonDisciples() found horizontal match at x=${x} y=${y}`);
+                    this.killEvilSound.play();
                     this.grid[x + 1][y] = iDisciple;
                     this.displayGridFiltered([0, iDisciple]);
                     await this.Pause(1000);
@@ -296,6 +314,7 @@ export class Game extends Scene {
             for (let y = 0; y < this.gridHeight - 2; y++) {
                 if (this.grid[x][y] == iDisciple && this.grid[x][y + 1] == 0 && this.grid[x][y + 2] == iDisciple) {
                     // console.log(`summonDisciples() found vertical match at x=${x} y=${y}`);
+                    this.killEvilSound.play();
                     this.grid[x][y + 1] = iDisciple;
                     this.displayGridFiltered([0, iDisciple]);
                     await this.Pause(1000);

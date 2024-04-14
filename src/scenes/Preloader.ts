@@ -41,6 +41,15 @@ export class Preloader extends Scene {
         this.load.spritesheet('characters', 'characters.png', { frameWidth: 80, frameHeight: 80 });
 
         this.load.audio('button', 'button.wav');
+        this.load.audio('countdown', 'countdown.wav');
+        this.load.audio('drag_end', 'drag_end.wav');
+        this.load.audio('drag_start', 'drag_start.wav');
+        this.load.audio('game_lost', 'game_lost.wav');
+        this.load.audio('game_won', 'game_won.wav');
+        this.load.audio('kill_evil', 'kill_evil.wav');
+        this.load.audio('show_all', 'show_all.wav');
+        this.load.audio('start_game', 'start_game.wav');
+        this.load.audio('summon_runes', 'summon_runes.wav');
     }
 
     create() {
