@@ -9,4 +9,10 @@ export abstract class Global {
     public static readonly FONT_SIZE: number = 38;
     public static readonly FONT_FAMILY = 'Comic Sans MS'; // 'Arial Black'
 
+    public static readonly MENU_STYLE = {
+        fontFamily: Global.FONT_FAMILY,
+        fontSize: Global.FONT_SIZE, color: '#ffffff',
+        stroke: '#000000', strokeThickness: 8,
+        align: 'center'
+    }
 }
