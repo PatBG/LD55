@@ -72,7 +72,7 @@ export class GridSprites {
     onDragstart(pointer: Phaser.Input.Pointer, _gameobject: any) {
         if (!this.isDragActive) return;
 
-        //console.log(`gridZone.on(dragstart) pointer x=${Math.round(pointer.x)} y=${Math.round(pointer.y)}`);
+        // console.log(`gridZone.on(dragstart) pointer x=${Math.round(pointer.x)} y=${Math.round(pointer.y)}`);
         this.prevDragX = this.gridZone.x;
         this.prevDragY = this.gridZone.y;
         //console.log(`gridZone.on(dragstart) prevDragX=${this.prevDragX} prevDragY=${this.prevDragY}`);
@@ -85,11 +85,12 @@ export class GridSprites {
     onDrag(_pointer: Phaser.Input.Pointer, dragX: number, dragY: number) {
         if (!this.isDragActive) return;
 
-        //console.log(`gridZone.on(drag) dragX=${Math.round(dragX)} dragY=${Math.round(dragY)}`);
+        // console.log(`gridZone.on(drag) dragX=${Math.round(dragX)} dragY=${Math.round(dragY)}`);
         const deltaX = dragX - this.prevDragX;
         const deltaY = dragY - this.prevDragY;
         if (!this.dragDirection) {
-            if (deltaX != 0 && deltaY != 0) {
+            // console.log(`gridZone.on(drag) dragDirection=${this.dragDirection} deltaX=${deltaX} deltaY=${deltaY}`);
+            if (deltaX != 0 || deltaY != 0) {
                 if (Math.abs(deltaX) > Math.abs(deltaY)) {
                     this.dragDirection = true;
                     this.dragHorizontal = true;
@@ -97,7 +98,7 @@ export class GridSprites {
                     this.dragDirection = true;
                     this.dragHorizontal = false;
                 }
-                //console.log(`gridZone.on(drag) dragDirection=${this.dragDirection} dragHorizontal=${this.dragHorizontal}`);
+                // console.log(`gridZone.on(drag) dragDirection=${this.dragDirection} dragHorizontal=${this.dragHorizontal}`);
             }
         }
         if (this.dragDirection) {
