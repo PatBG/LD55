@@ -277,7 +277,9 @@ export class Game extends Scene {
     }
 
     onTimerStart() {
-        this.countdownSound.play();
+        if (this.countdownStart <= 5) {
+            this.countdownSound.play({ volume: 0.2 });
+        }
         this.textStart.setText(`Start game in ${this.countdownStart}`);
         this.countdownStart--;
         if (this.countdownStart < 0) {
@@ -295,7 +297,7 @@ export class Game extends Scene {
         // console.log(`summonDisciples(${iDisciple})`);
 
         this.displayGridFiltered([0, iDisciple]);
-        await this.Pause(1000);
+        await this.Pause(this.summonRunesSound.totalDuration * 1000 + 200);
 
         // check horizontal
         for (let x = 0; x < this.gridWidth - 2; x++) {
@@ -305,7 +307,7 @@ export class Game extends Scene {
                     this.killEvilSound.play();
                     this.grid[x + 1][y] = iDisciple;
                     this.displayGridFiltered([0, iDisciple]);
-                    await this.Pause(1000);
+                    await this.Pause(this.killEvilSound.totalDuration * 1000 + 200);
                 }
             }
         }
@@ -317,7 +319,7 @@ export class Game extends Scene {
                     this.killEvilSound.play();
                     this.grid[x][y + 1] = iDisciple;
                     this.displayGridFiltered([0, iDisciple]);
-                    await this.Pause(1000);
+                    await this.Pause(this.killEvilSound.totalDuration * 1000 + 200);
                 }
             }
         }
