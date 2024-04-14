@@ -23,6 +23,7 @@ export class Game extends Scene {
     level: number = 1;
     levelPhase = GamePhase.PreGame;
 
+    titleLevel: Phaser.GameObjects.Text;
     menuPreGame: Phaser.GameObjects.Container;
     menuShowAll: Phaser.GameObjects.Container;
     menuMoveAndSummon: Phaser.GameObjects.Container;
@@ -72,8 +73,11 @@ export class Game extends Scene {
             stroke: '#000000', strokeThickness: 8,
             align: 'center'
         }
-        const menuY = 40 - Global.SCREEN_CENTER_Y;
+        const menuY = 100 - Global.SCREEN_CENTER_Y;
         const buttonY = 420;
+
+        this.titleLevel = this.add.text(Global.SCREEN_CENTER_X, 20, `Level ${this.level}`, menuStyle)
+            .setOrigin(0.5, 0);
 
         this.menuPreGame = this.add.container(Global.SCREEN_CENTER_X, Global.SCREEN_CENTER_Y);
         this.menuPreGame.add(
@@ -94,10 +98,8 @@ export class Game extends Scene {
 
         this.menuShowAll = this.add.container(Global.SCREEN_CENTER_X, Global.SCREEN_CENTER_Y);
         this.menuShowAll.add(
-            this.add.text(0, 40 - Global.SCREEN_CENTER_Y,
-                'Look at disciples positions\nbefore they hide.',
-                menuStyle
-            ).setOrigin(0.5, 0));
+            this.add.text(0, menuY, 'Look at disciples positions\nbefore they hide.', menuStyle)
+                .setOrigin(0.5, 0));
         this.menuShowAll.add(
             this.add.nineslice(0, buttonY, 'button', 0, 600, 100, 30, 30, 30, 30)
                 .setInteractive()
@@ -217,6 +219,7 @@ export class Game extends Scene {
     }
 
     onButtonPreGame() {
+        this.titleLevel.setText(`Level ${this.level}`);
         this.levelPhase = GamePhase.ShowAll;
         this.applyPhase();
     }
