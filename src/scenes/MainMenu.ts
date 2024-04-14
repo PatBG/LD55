@@ -16,7 +16,11 @@ export class MainMenu extends Scene {
             .setScale(Global.SCREEN_WIDTH / 8, 1.7)
             .setAlpha(0.5);
 
-        this.add.image(Global.SCREEN_WIDTH - 20, Global.SCREEN_HEIGHT - 20, 'logo').setOrigin(1).setScale(0.5);
+        this.add.image(Global.SCREEN_WIDTH - 20, Global.SCREEN_HEIGHT - 20, 'logo')
+            .setOrigin(1)
+            .setScale(0.5)
+            .setInteractive()
+            .on('pointerup', () => { window.open('https://phaser.io/') });
 
         const buttonX = Global.SCREEN_CENTER_X;
         const button1Y = Global.SCREEN_CENTER_Y + 100;
