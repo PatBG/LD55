@@ -19,6 +19,8 @@ export class GridSprites {
 
     gridZone: Phaser.GameObjects.Zone;
 
+    mask: Phaser.Display.Masks.GeometryMask;
+
     constructor(gridWidth: number, gridHeight: number) {
         this.gridWidth = gridWidth;
         this.gridHeight = gridHeight;
@@ -26,7 +28,7 @@ export class GridSprites {
         this.gridZoneY = Global.SCREEN_CENTER_Y - (this.gridHeight / 2) * this.gridZoneCellSize;
     }
 
-    create(scene: Phaser.Scene, grid: number[][], onGridChanged:(changeHorizontal: boolean, i: number, value: number) => void) {
+    create(scene: Phaser.Scene, grid: number[][], onGridChanged: (changeHorizontal: boolean, i: number, value: number) => void) {
         this.scene = scene;
 
         this.gridZone = scene.add.zone(Global.SCREEN_CENTER_X, Global.SCREEN_CENTER_Y, 6 * this.gridZoneCellSize, 6 * this.gridZoneCellSize)
@@ -34,19 +36,32 @@ export class GridSprites {
 
         const graphics = this.scene.make.graphics();
         graphics.fillRect(this.gridZoneX, this.gridZoneY, this.gridZone.width - 2, this.gridZone.height - 2);
-        const mask = new Phaser.Display.Masks.GeometryMask(this.scene, graphics);
+        this.mask = new Phaser.Display.Masks.GeometryMask(this.scene, graphics);
 
         for (let x = 0; x < this.gridWidth; x++) {
             this.sprites[x] = [];
             for (let y = 0; y < this.gridHeight; y++) {
                 this.sprites[x][y] = this.scene.add.sprite(this.gridZoneX + x * this.gridZoneCellSize, this.gridZoneY + y * this.gridZoneCellSize,
-                    'characters', grid[x][y]).setOrigin(0).setMask(mask);
+                    'characters', grid[x][y]).setOrigin(0).setMask(this.mask);
             }
         }
 
         this.gridZone.on('dragstart', (pointer: Phaser.Input.Pointer, gameobject: any) => this.OnDragstart(pointer, gameobject));
         this.gridZone.on('drag', (pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => this.OnDrag(pointer, dragX, dragY));
         this.gridZone.on('dragend', (pointer: Phaser.Input.Pointer, gameobject: any) => this.OnDragend(pointer, gameobject, onGridChanged));
+    }
+
+    update(grid: number[][]) {
+        for (let x = 0; x < this.gridWidth; x++) {
+            for (let y = 0; y < this.gridHeight; y++) {
+                if (this.sprites[x][y].frame.name != grid[x][y].toString()) {
+                    console.log(`update() x=${x} y=${y} grid[x][y]=${grid[x][y]}`);
+                    this.sprites[x][y].destroy();
+                    this.sprites[x][y] = this.scene.add.sprite(this.gridZoneX + x * this.gridZoneCellSize, this.gridZoneY + y * this.gridZoneCellSize,
+                        'characters', grid[x][y]).setOrigin(0).setMask(this.mask);
+                }
+            }
+        }
     }
 
     OnDragstart(pointer: Phaser.Input.Pointer, _gameobject: any) {
@@ -95,7 +110,7 @@ export class GridSprites {
         }
     }
 
-    OnDragend(_pointer: Phaser.Input.Pointer, _gameobject: any, onGridChanged:(changeHorizontal: boolean, i: number, value: number) => void) {
+    OnDragend(_pointer: Phaser.Input.Pointer, _gameobject: any, onGridChanged: (changeHorizontal: boolean, i: number, value: number) => void) {
         const deltaCellX = Math.round((this.prevDragX - this.gridZone.x) / this.gridZoneCellSize);
         const deltaCellY = Math.round((this.prevDragY - this.gridZone.y) / this.gridZoneCellSize);
         console.log(`gridZone.on(dragend) deltaCellX=${deltaCellX} deltaCellY=${deltaCellY}`);
