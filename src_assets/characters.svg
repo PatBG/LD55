@@ -11,6 +11,7 @@
    sodipodi:docname="characters.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <sodipodi:namedview
@@ -34,7 +35,29 @@
      inkscape:current-layer="layer1"
      showgrid="false" />
   <defs
-     id="defs1" />
+     id="defs1">
+    <linearGradient
+       id="linearGradient1"
+       inkscape:collect="always">
+      <stop
+         style="stop-color:#006060;stop-opacity:1;"
+         offset="0"
+         id="stop1" />
+      <stop
+         style="stop-color:#006060;stop-opacity:0;"
+         offset="1"
+         id="stop2" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1"
+       id="linearGradient2"
+       x1="35.15145"
+       y1="84.545594"
+       x2="38.989975"
+       y2="84.545594"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
@@ -164,23 +187,23 @@
          id="tspan29">ᛰ</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:9.17222px;line-height:1.15;font-family:sans-serif;fill:#005c00;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       style="font-style:normal;font-weight:normal;font-size:9.17222px;line-height:1.15;font-family:sans-serif;fill:#249276;fill-opacity:1;stroke:none;stroke-width:0.264583"
        x="36.880371"
        y="77.173439"
        id="text36"><tspan
          sodipodi:role="line"
          x="36.880371"
          y="77.173439"
-         style="font-size:9.17222px;line-height:1.15;text-align:center;text-anchor:middle;stroke-width:0.264583;fill:#005c00;fill-opacity:1"
+         style="font-size:9.17222px;line-height:1.15;text-align:center;text-anchor:middle;stroke-width:0.264583;fill:#249276;fill-opacity:1"
          id="tspan35">ᛯ</tspan><tspan
          sodipodi:role="line"
          x="36.880371"
          y="87.805153"
-         style="font-size:9.17222px;line-height:1.15;text-align:center;text-anchor:middle;stroke-width:0.264583;fill:#005c00;fill-opacity:1"
+         style="font-size:9.17222px;line-height:1.15;text-align:center;text-anchor:middle;stroke-width:0.264583;fill:#249276;fill-opacity:1"
          id="tspan36" /></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:9.17222px;line-height:1.15;font-family:sans-serif;fill:#006060;fill-opacity:1;stroke:#130b05;stroke-width:0.264583;stroke-opacity:1"
+       style="font-style:normal;font-weight:normal;font-size:9.17222px;line-height:1.15;font-family:sans-serif;fill:#0077f4;fill-opacity:1;stroke:#130b05;stroke-width:0.264583;stroke-opacity:1"
        x="36.880371"
        y="87.756767"
        id="text43"
@@ -190,12 +213,12 @@
          sodipodi:role="line"
          x="36.880371"
          y="87.756767"
-         style="font-size:9.17222px;line-height:1.15;text-align:center;text-anchor:middle;stroke-width:0.264583;fill:#006060;stroke:#130b05;stroke-opacity:1;fill-opacity:1"
+         style="font-size:9.17222px;line-height:1.15;text-align:center;text-anchor:middle;stroke-width:0.264583;fill:#0077f4;stroke:#130b05;stroke-opacity:1;fill-opacity:1"
          id="tspan42">ᛔ</tspan><tspan
          sodipodi:role="line"
          x="36.880371"
          y="98.388481"
-         style="font-size:9.17222px;line-height:1.15;text-align:center;text-anchor:middle;stroke-width:0.264583;fill:#006060;stroke:#130b05;stroke-opacity:1;fill-opacity:1"
+         style="font-size:9.17222px;line-height:1.15;text-align:center;text-anchor:middle;stroke-width:0.264583;fill:#0077f4;stroke:#130b05;stroke-opacity:1;fill-opacity:1"
          id="tspan43" /></text>
   </g>
 </svg>
