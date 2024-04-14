@@ -3,6 +3,9 @@ import { Global } from "./Global";
 export class GridSprites {
     scene: Phaser.Scene;
 
+    dragEndSound: Phaser.Sound.BaseSound;
+    dragStartSound: Phaser.Sound.BaseSound;
+
     dragCellX: number;
     dragCellY: number;
     prevDragX: number;
@@ -35,6 +38,9 @@ export class GridSprites {
 
     create(scene: Phaser.Scene, grid: number[][] | null, onGridChanged: (changeHorizontal: boolean, i: number, value: number) => void) {
         this.scene = scene;
+
+        this.dragEndSound = scene.sound.add('drag_end');
+        this.dragStartSound = scene.sound.add('drag_start');
 
         this.gridZone = scene.add.zone(Global.SCREEN_CENTER_X, Global.SCREEN_CENTER_Y, 6 * this.gridZoneCellSize, 6 * this.gridZoneCellSize)
             .setInteractive({ draggable: true });
@@ -72,6 +78,7 @@ export class GridSprites {
     onDragstart(pointer: Phaser.Input.Pointer, _gameobject: any) {
         if (!this.isDragActive) return;
 
+        this.dragStartSound.play();
         // console.log(`gridZone.on(dragstart) pointer x=${Math.round(pointer.x)} y=${Math.round(pointer.y)}`);
         this.prevDragX = this.gridZone.x;
         this.prevDragY = this.gridZone.y;
@@ -122,6 +129,7 @@ export class GridSprites {
     onDragend(_pointer: Phaser.Input.Pointer, _gameobject: any, onGridChanged: (changeHorizontal: boolean, i: number, value: number) => void) {
         if (!this.isDragActive) return;
 
+        this.dragEndSound.play();        
         const deltaCellX = Math.round((this.prevDragX - this.gridZone.x) / this.gridZoneCellSize);
         const deltaCellY = Math.round((this.prevDragY - this.gridZone.y) / this.gridZoneCellSize);
         // console.log(`gridZone.on(dragend) deltaCellX=${deltaCellX} deltaCellY=${deltaCellY}`);
