@@ -72,6 +72,13 @@ export class Game extends Scene {
 
         this.createMenus();
 
+        // HACK: Allow to skip to next level for testing
+        // this.hackNextLevel();
+
+        this.applyPhase();
+    }
+
+    hackNextLevel() {
         if (this.input.keyboard) {
             this.input.keyboard.addKey('T').on('down', () => {
                 if (this.timerStart) {
@@ -82,8 +89,6 @@ export class Game extends Scene {
                 this.applyPhase();
             });
         }
-
-        this.applyPhase();
     }
 
     back() {
