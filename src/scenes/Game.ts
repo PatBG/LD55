@@ -282,8 +282,8 @@ export class Game extends Scene {
     }
 
     onTimerStart() {
-        if (this.countdownStart <= 5) {
-            this.countdownSound.play({ volume: 0.2 });
+        if (this.countdownStart < this.coutdownByLevel(this.level) - 3) {
+            this.countdownSound.play({ volume: (this.countdownStart <= 5) ? 0.3 : 0.05 });
         }
         this.textStart.setText(`Start game in ${this.countdownStart}`);
         this.countdownStart--;
