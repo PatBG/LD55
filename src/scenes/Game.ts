@@ -29,7 +29,6 @@ export class Game extends Scene {
     grid: number[][] = [];
 
     rnd = new Phaser.Math.RandomDataGenerator();
-    level = 1;
     levelPhase = GamePhase.PreGame;
 
     titleLevel: Phaser.GameObjects.Text;
@@ -73,27 +72,36 @@ export class Game extends Scene {
         this.createMenus();
 
         // HACK: Allow to skip to next level for testing
-        // this.hackNextLevel();
+        this.hack();
 
         this.applyPhase();
     }
 
-    hackNextLevel() {
+    hack() {
         if (this.input.keyboard) {
-            this.input.keyboard.addKey('T').on('down', () => {
-                if (this.timerStart) {
-                    this.timerStart.destroy();
-                }
-                this.level++;
-                this.levelPhase = GamePhase.PreGame;
-                this.applyPhase();
-            });
+            this.input.keyboard.addKey('T').on('down', () => this.hackNextLevel());
+            this.input.keyboard.addKey('R').on('down', () => this.hackResetLevel());
         }
     }
 
-    back() {
+    hackNextLevel() {
+        Global.level++;
+        this.hackRestartLevel();
+    }
+
+    hackResetLevel() {
+        Global.resetLevel();
+        this.hackRestartLevel();
+    }
+
+    hackRestartLevel() {
         if (this.timerStart) this.timerStart.destroy();
-        this.level = 1;
+        this.levelPhase = GamePhase.PreGame;
+        this.applyPhase();
+    }
+
+    backToMainMenu() {
+        if (this.timerStart) this.timerStart.destroy();
         this.levelPhase = GamePhase.PreGame;
         this.scene.start('MainMenu');
     }
@@ -108,12 +116,12 @@ export class Game extends Scene {
         const buttonBackX = Global.SCREEN_CENTER_X - 200;
         const buttonBackY = Global.SCREEN_CENTER_Y * 2 - 60;
 
-        this.titleLevel = this.add.text(Global.SCREEN_CENTER_X, 20, `Level ${this.level}`, menuStyle)
+        this.titleLevel = this.add.text(Global.SCREEN_CENTER_X, 20, `Level ${Global.level}`, menuStyle)
             .setOrigin(0.5, 0);
 
         this.add.nineslice(buttonBackX, buttonBackY, 'button', 0, 200, 100, 30, 30, 30, 30)
             .setInteractive()
-            .on('pointerup', () => { this.buttonSound.play(); this.back() });
+            .on('pointerup', () => { this.buttonSound.play(); this.backToMainMenu() });
         this.add.text(buttonBackX, buttonBackY, 'Back', menuStyle).setOrigin(0.5);
 
         this.menuPreGame = this.add.container(Global.SCREEN_CENTER_X, Global.SCREEN_CENTER_Y);
@@ -190,7 +198,7 @@ export class Game extends Scene {
 
     applyPhase() {
         // console.log(`ApplyPhase() level=${this.level} levelPhase=${GamePhase[this.levelPhase]}`);
-        this.titleLevel.setText(`Level ${this.level}`);
+        this.titleLevel.setText(`Level ${Global.level}`);
         switch (this.levelPhase) {
             case GamePhase.PreGame:
                 this.initLevel();
@@ -231,8 +239,8 @@ export class Game extends Scene {
 
     initLevel() {
         // Initialize the random seed with the level number
-        this.rnd.init([`ABC ${this.level}`]);
-        let nbDemons = Math.min(Math.floor((this.level + 4) / 5), 4);
+        this.rnd.init([`ABC ${Global.level}`]);
+        let nbDemons = Math.min(Math.floor((Global.level + 4) / 5), 4);
         // console.log(`initLevel() level=${this.level} nbDemons=${nbDemons}`);
 
         const totalSize = this.gridWidth * this.gridHeight;
@@ -259,7 +267,7 @@ export class Game extends Scene {
         this.levelPhase = GamePhase.ShowAll;
         this.applyPhase();
 
-        this.countdownStart = this.coutdownByLevel(this.level);
+        this.countdownStart = this.coutdownByLevel(Global.level);
         this.timerStart = this.time.addEvent({
             delay: 1000,
             loop: true,
@@ -282,7 +290,7 @@ export class Game extends Scene {
     }
 
     onTimerStart() {
-        if (this.countdownStart < this.coutdownByLevel(this.level) - 3) {
+        if (this.countdownStart < this.coutdownByLevel(Global.level) - 3) {
             this.countdownSound.play({ volume: (this.countdownStart <= 5) ? 0.3 : 0.05 });
         }
         this.textStart.setText(`Start game in ${this.countdownStart}`);
@@ -348,7 +356,7 @@ export class Game extends Scene {
     }
 
     onButtonNextLevel() {
-        this.level++;
+        Global.level++;
         this.levelPhase = GamePhase.PreGame;
         this.applyPhase();
     }
