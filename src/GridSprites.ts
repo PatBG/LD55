@@ -19,12 +19,15 @@ export class GridSprites {
     readonly gridZoneX: number;
     readonly gridZoneY: number;
     sprites: Phaser.GameObjects.Sprite[][] = [];
+    extraSprite: Phaser.GameObjects.Sprite | null = null;      // extra sprite for current scrolling row or column
+    extraIndex: number = -1;                                   // index of the extra sprite
 
     gridZone: Phaser.GameObjects.Zone;
 
     mask: Phaser.Display.Masks.GeometryMask;
 
-    isDragActive=false;
+    readonly dragThreshold = 5;
+    isDragActive = false;
     setDragActive(value: boolean) {
         this.isDragActive = value;
     }
@@ -68,8 +71,11 @@ export class GridSprites {
                     if (this.sprites[x][y]) {
                         this.sprites[x][y].destroy();
                     }
-                    this.sprites[x][y] = this.scene.add.sprite(this.gridZoneX + x * this.gridZoneCellSize, this.gridZoneY + y * this.gridZoneCellSize,
-                        'characters', frame).setOrigin(0).setMask(this.mask);
+                    this.sprites[x][y] = this.scene.add.sprite(
+                        this.gridZoneX + x * this.gridZoneCellSize, this.gridZoneY + y * this.gridZoneCellSize,
+                        'characters', frame)
+                        .setOrigin(0)
+                        .setMask(this.mask);
                 }
             }
         }
@@ -95,9 +101,8 @@ export class GridSprites {
         // console.log(`gridZone.on(drag) dragX=${Math.round(dragX)} dragY=${Math.round(dragY)}`);
         const deltaX = dragX - this.prevDragX;
         const deltaY = dragY - this.prevDragY;
-        if (!this.dragDirection) {
-            // console.log(`gridZone.on(drag) dragDirection=${this.dragDirection} deltaX=${deltaX} deltaY=${deltaY}`);
-            if (deltaX != 0 || deltaY != 0) {
+        if (!this.dragDirection) {                      // Determine drag direction
+            if (Math.abs(deltaX) > this.dragThreshold || Math.abs(deltaY) > this.dragThreshold) {
                 if (Math.abs(deltaX) > Math.abs(deltaY)) {
                     this.dragDirection = true;
                     this.dragHorizontal = true;
@@ -105,21 +110,57 @@ export class GridSprites {
                     this.dragDirection = true;
                     this.dragHorizontal = false;
                 }
-                // console.log(`gridZone.on(drag) dragDirection=${this.dragDirection} dragHorizontal=${this.dragHorizontal}`);
+                //console.log(`gridZone.on(drag) dragDirection=${this.dragDirection} dragHorizontal=${this.dragHorizontal} deltaX=${deltaX} deltaY=${deltaY}`);
             }
         }
         if (this.dragDirection) {
+            let minI = -1;
+            let minVal = Number.MAX_VALUE;
+            let sprite: Phaser.GameObjects.Sprite | null = null;
+            let xx = 0;
+            let yy = 0;
             if (this.dragHorizontal) {
                 for (let x = 0; x < this.gridWidth; x++) {
-                    this.sprites[x][this.dragCellY].x = this.clipX(this.sprites[x][this.dragCellY].x + deltaX);
+                    this.sprites[x][this.dragCellY].x = this.clipX(this.sprites[x][this.dragCellY].x + deltaX, this.gridZoneCellSize);
+                    if (minVal > this.sprites[x][this.dragCellY].x) {
+                        minVal = this.sprites[x][this.dragCellY].x;
+                        minI = x;
+                    }
+                }
+                if (this.extraIndex != minI) {              // Set or change the extra sprite
+                    sprite = this.sprites[minI][this.dragCellY];
+                    xx = this.gridZone.width;
+                }
+                else if (this.extraSprite) {                 // Move the extra sprite
+                    this.extraSprite.x += deltaX;
                 }
                 this.prevDragX = dragX;
             }
             else {
                 for (let y = 0; y < this.gridHeight; y++) {
-                    this.sprites[this.dragCellX][y].y = this.clipY(this.sprites[this.dragCellX][y].y + deltaY);
+                    this.sprites[this.dragCellX][y].y = this.clipY(this.sprites[this.dragCellX][y].y + deltaY, this.gridZoneCellSize);
+                    if (minVal > this.sprites[this.dragCellX][y].y) {
+                        minVal = this.sprites[this.dragCellX][y].y;
+                        minI = y;
+                    }
+                }
+                if (this.extraIndex != minI) {              // Set or change the extra sprite
+                    sprite = this.sprites[this.dragCellX][minI];
+                    yy = this.gridZone.height;
+                }
+                else if (this.extraSprite) {                 // Move the extra sprite
+                    this.extraSprite.y += deltaY;
                 }
                 this.prevDragY = dragY;
+            }
+            if (this.extraIndex != minI && sprite) {          // Apply change to extra sprite
+                this.extraIndex = minI;
+                if (this.extraSprite) {
+                    this.extraSprite.destroy();
+                }
+                this.extraSprite = this.scene.add.sprite(sprite.x + xx, sprite.y + yy, sprite.texture.key, sprite.frame.name)
+                    .setOrigin(0)
+                    .setMask(this.mask);
             }
             //console.log(`gridZone.on(drag) deltaX=${deltaX} deltaY=${deltaY}`);
             //console.log(`gridZone.on(drag) dragX=${dragX} dragY=${dragY}`);
@@ -129,7 +170,7 @@ export class GridSprites {
     onDragend(_pointer: Phaser.Input.Pointer, _gameobject: any, onGridChanged: (changeHorizontal: boolean, i: number, value: number) => void) {
         if (!this.isDragActive) return;
 
-        this.dragEndSound.play();        
+        this.dragEndSound.play();
         const deltaCellX = Math.round((this.prevDragX - this.gridZone.x) / this.gridZoneCellSize);
         const deltaCellY = Math.round((this.prevDragY - this.gridZone.y) / this.gridZoneCellSize);
         // console.log(`gridZone.on(dragend) deltaCellX=${deltaCellX} deltaCellY=${deltaCellY}`);
@@ -141,7 +182,7 @@ export class GridSprites {
                 let lineSprites: Phaser.GameObjects.Sprite[] = [];
                 for (let x = 0; x < this.gridWidth; x++) {
                     lineSprites.push(this.sprites[x][this.dragCellY]);
-                    lineSprites[lineSprites.length - 1].x = this.clipX(lineSprites[lineSprites.length - 1].x + roundedDragX - this.prevDragX);
+                    lineSprites[lineSprites.length - 1].x = this.clipX(lineSprites[lineSprites.length - 1].x + roundedDragX - this.prevDragX, this.gridZoneCellSize / 2);
                 }
                 lineSprites = lineSprites.sort((a, b) => a.x - b.x);
                 for (let x = 0; x < this.gridWidth; x++) {
@@ -150,29 +191,34 @@ export class GridSprites {
             }
             else {
                 for (let y = 0; y < this.gridHeight; y++) {
-                    this.sprites[this.dragCellX][y].y = this.clipY(this.sprites[this.dragCellX][y].y + roundedDragY - this.prevDragY);
+                    this.sprites[this.dragCellX][y].y = this.clipY(this.sprites[this.dragCellX][y].y + roundedDragY - this.prevDragY, this.gridZoneCellSize / 2);
                 }
                 this.sprites[this.dragCellX] = this.sprites[this.dragCellX].sort((a, b) => a.y - b.y);
             }
             onGridChanged(this.dragHorizontal, this.dragHorizontal ? this.dragCellY : this.dragCellX, this.dragHorizontal ? deltaCellX : deltaCellY);
         }
+
+        if (this.extraSprite) {
+            this.extraSprite.destroy();
+            this.extraSprite = null;
+        }
     }
 
-    clipX(x: number): number {
-        if (x <= this.gridZoneX - this.gridZoneCellSize / 2) {
+    clipX(x: number, dec: number): number {
+        if (x <= this.gridZoneX - dec) {
             x += this.gridZone.width;
         }
-        else if (x > this.gridZoneX + this.gridZone.width - this.gridZoneCellSize / 2) {
+        else if (x > this.gridZoneX + this.gridZone.width - dec) {
             x -= this.gridZone.width;
         }
         return x;
     }
 
-    clipY(y: number): number {
-        if (y <= this.gridZoneY - this.gridZoneCellSize / 2) {
+    clipY(y: number, dec: number): number {
+        if (y <= this.gridZoneY - dec) {
             y += this.gridZone.height;
         }
-        else if (y > this.gridZoneY + this.gridZone.height - this.gridZoneCellSize / 2) {
+        else if (y > this.gridZoneY + this.gridZone.height - dec) {
             y -= this.gridZone.height;
         }
         return y;
