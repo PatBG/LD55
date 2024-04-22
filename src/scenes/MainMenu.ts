@@ -20,7 +20,7 @@ export class MainMenu extends Scene {
         this.add.text(Global.SCREEN_CENTER_X, 20,
             "RUNES SUMMONER\n\n"
             + "LudumDare#55\nApril 14, 2024\nTheme: Summoning\n\n"
-            + "(Enhanced post jam version)\nby PatBG", Global.MENU_STYLE)
+            + "(post-jam version)\nby PatBG", Global.MENU_STYLE)
             .setOrigin(0.5, 0);
 
         this.add.image(Global.SCREEN_CENTER_X, Global.SCREEN_CENTER_Y, 'logo2')
