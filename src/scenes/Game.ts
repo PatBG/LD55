@@ -42,6 +42,9 @@ export class Game extends Scene {
     textStart: Phaser.GameObjects.Text;
     countdownStart: number;
 
+    nbMoves: number = 0;
+    lineNbMoves: Phaser.GameObjects.Text;
+
     constructor() {
         super('Game');
     }
@@ -158,6 +161,9 @@ export class Game extends Scene {
         this.menuMoveAndSummon.add(
             this.add.text(0, menuY, 'Move rows and columns\nto overwhelm evils.', menuStyle)
                 .setOrigin(0.5, 0));
+        this.lineNbMoves = this.add.text(0, -340, '', menuStyle);
+        this.menuMoveAndSummon.add(this.lineNbMoves
+                .setOrigin(0.5, 0));
         this.menuMoveAndSummon.add(
             this.add.text(0, 300, 'Summon a type of rune', menuStyle)
                 .setOrigin(0.5, 0));
@@ -210,6 +216,7 @@ export class Game extends Scene {
             case GamePhase.MoveAndSummon:
                 this.displayGridFiltered([0]);              // Display only demons
                 this.gridSprites.setDragActive(true);
+                this.nbMoves = 0;
                 break;
             case GamePhase.Retry:
                 this.gameLostSound.play();
@@ -382,8 +389,8 @@ export class Game extends Scene {
                     this.grid[i][y] = line[(10 * this.gridHeight + y - value) % this.gridHeight];
                 }
             }
-
             this.logGrid();
+            this.lineNbMoves.setText(`Moves: ${++this.nbMoves}`);
         }
     }
 
