@@ -50,6 +50,7 @@ export class GridSprites {
 
         const graphics = this.scene.make.graphics();
         graphics.fillRect(this.gridZoneX, this.gridZoneY, this.gridZone.width - 2, this.gridZone.height - 2);
+        // graphics.fillRect(0, 0, Global.SCREEN_WIDTH, Global.SCREEN_HEIGHT);     // Full screen mask (for debugging without masking)
         this.mask = new Phaser.Display.Masks.GeometryMask(this.scene, graphics);
 
         this.update(grid);
@@ -93,6 +94,7 @@ export class GridSprites {
         this.dragCellY = Math.floor((pointer.y - (this.gridZone.y - this.gridZone.height / 2)) / this.gridZoneCellSize);
         //console.log(`gridZone.on(dragstart) dragCellX=${this.dragCellX} dragCellY=${this.dragCellY}`);
         this.dragDirection = false;
+        this.extraIndex = -1;
     }
 
     onDrag(_pointer: Phaser.Input.Pointer, dragX: number, dragY: number) {
@@ -154,6 +156,7 @@ export class GridSprites {
                 this.prevDragY = dragY;
             }
             if (this.extraIndex != minI && sprite) {          // Apply change to extra sprite
+                // console.log(`gridZone.on(drag) extraIndex=${this.extraIndex} minI=${minI}`);
                 this.extraIndex = minI;
                 if (this.extraSprite) {
                     this.extraSprite.destroy();
